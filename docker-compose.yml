@@ -1,0 +1,13 @@
+services:
+  certafrica-ml:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      STORAGE_DIR: /app/storage
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      MAX_UPLOAD_MB: 15
+      OCR_LANG: eng
+    volumes:
+      - ./storage:/app/storage
