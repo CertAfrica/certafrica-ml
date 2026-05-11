@@ -1,0 +1,17 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+pydantic-settings==2.7.1
+numpy==2.2.1
+Pillow==11.1.0
+opencv-python-headless==4.10.0.84
+scikit-learn==1.3.2
+# pytesseract==0.3.13
+PyMuPDF==1.24.14
+reportlab==4.2.5
+easyocr==1.7.0
+rapidfuzz==3.9.7
+spacy==3.7.5
+pandas==2.2.3
+joblib==1.4.2
+boto3==1.34.162
