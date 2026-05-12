@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import re
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -20,11 +20,16 @@ class AnomalyEvidence:
 
 class OCRExtractor:
     def __init__(self):
-        self.reader = easyocr.Reader(['en'], gpu=False)
+        self.reader: Optional[easyocr.Reader] = None
+
+    def _get_reader(self) -> easyocr.Reader:
+        if self.reader is None:
+            self.reader = easyocr.Reader(["en"], gpu=False)
+        return self.reader
     
     def extract(self, image: np.ndarray, language: str = "eng") -> OCRResult:
         """Extract text using EasyOCR"""
-        results = self.reader.readtext(image)
+        results = self._get_reader().readtext(image)
         
         # Build raw text
         raw_text = '\n'.join([text[1] for text in results])
