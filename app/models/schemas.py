@@ -7,6 +7,108 @@ from pydantic import BaseModel, Field
 from app.ai.models import CertificateTypePrediction, DocumentTypePrediction, InstitutionPrediction
 
 
+class VerificationPayload(BaseModel):
+    trustScore: int
+    refinedTrustScore: int
+    riskLevel: str
+    confidenceLevel: str
+    status: str
+    recommendedAction: str
+
+
+class DocumentTypeView(BaseModel):
+    label: str = "unknown_document"
+    displayName: str = "Unknown Document"
+    confidence: float = 0.0
+    evidence: List[str] = Field(default_factory=list)
+
+
+class CertificateTypeView(BaseModel):
+    label: str = "unknown_document"
+    displayName: str = "Unknown Document"
+    confidence: float = 0.0
+    evidence: List[str] = Field(default_factory=list)
+
+
+class InstitutionView(BaseModel):
+    name: str = "Unknown Institution"
+    confidence: float = 0.0
+    evidence: List[str] = Field(default_factory=list)
+
+
+class DocumentAnalysisPayload(BaseModel):
+    documentType: DocumentTypeView
+    certificateType: CertificateTypeView
+    institution: InstitutionView
+
+
+class OCRAnalysisPayload(BaseModel):
+    confidence: float = 0.0
+    language: str = "eng"
+    rawText: str = ""
+    extractedFields: Dict[str, str] = Field(default_factory=dict)
+
+
+class RegionCoordinates(BaseModel):
+    left: int = 0
+    top: int = 0
+    width: int = 0
+    height: int = 0
+
+
+class SuspiciousRegionView(BaseModel):
+    coordinates: RegionCoordinates
+    severity: float = 0.0
+    category: str = ""
+
+
+class FindingCategories(BaseModel):
+    possibleTampering: int = 0
+    irregularSpacing: int = 0
+    moderateAnomaly: int = 0
+
+
+class FindingSummary(BaseModel):
+    totalRegions: int = 0
+    categories: FindingCategories = Field(default_factory=FindingCategories)
+
+
+class AnomalyDetectionPayload(BaseModel):
+    overallScore: float = 0.0
+    findingSummary: FindingSummary
+    suspiciousRegions: List[SuspiciousRegionView] = Field(default_factory=list)
+
+
+class LayoutAnalysisPayload(BaseModel):
+    hasSignatureArea: bool = False
+    hasTableStructure: bool = False
+    hasHeaderArea: bool = False
+    hasFooterArea: bool = False
+    blockCount: int = 0
+
+
+class ArtifactsPayload(BaseModel):
+    uploadUrl: str
+    heatmapUrl: str
+    reportUrl: str
+    previewUrl: str
+
+
+class AnalysisResponse(BaseModel):
+    scanId: str
+    analysisTimestamp: datetime
+    processingTime: str
+
+    verification: VerificationPayload
+    documentAnalysis: DocumentAnalysisPayload
+    ocrAnalysis: OCRAnalysisPayload
+    anomalyDetection: AnomalyDetectionPayload
+    layoutAnalysis: LayoutAnalysisPayload
+    reasoning: List[str] = Field(default_factory=list)
+    artifacts: ArtifactsPayload
+
+
+# Backward-compatible models still used across the codebase
 class OCRBlock(BaseModel):
     text: str = ""
     confidence: float = 0.0
@@ -35,28 +137,3 @@ class VerificationArtifact(BaseModel):
     path: str
     url: str
     mime_type: str
-
-
-class AnalysisResponse(BaseModel):
-    scanId: str
-    trustScore: int
-    verificationStatus: str
-    documentType: Optional[DocumentTypePrediction] = None
-    ocrResult: OCRResult
-    anomalyResult: AnomalyResult
-    aiCertificateType: Optional[CertificateTypePrediction] = None
-    aiInstitution: Optional[InstitutionPrediction] = None
-    refinedTrustScore: Optional[int] = None
-    riskLevel: Optional[str] = None
-    confidenceLevel: Optional[str] = None
-    verificationSummary: Optional[str] = None
-    detailedExplanation: Optional[str] = None
-    recommendedAction: Optional[str] = None
-    cleanedOCRText: str = ""
-    aiReasoning: List[str] = Field(default_factory=list)
-    aiMetadata: Dict[str, Any] = Field(default_factory=dict)
-    heatmapImageUrl: str
-    reportUrl: str
-    processingTime: str
-    analysisTimestamp: datetime
-    artifactPaths: Dict[str, str] = Field(default_factory=dict)

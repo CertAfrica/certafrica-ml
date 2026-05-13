@@ -18,17 +18,40 @@ Form fields:
 
 Response includes:
 - `scanId`
-- `trustScore`
-- `verificationStatus`
-- `documentType`
-- `ocrResult`
-- `anomalyResult`
-- `aiCertificateType`
-- `aiInstitution`
-- `verificationSummary`
-- `heatmapImageUrl`
-- `reportUrl`
+- `analysisTimestamp`
 - `processingTime`
+- `verification`
+  - `trustScore`
+  - `refinedTrustScore`
+  - `riskLevel`
+  - `confidenceLevel`
+  - `status`
+  - `recommendedAction`
+- `documentAnalysis` (from AI layer)
+  - `documentType`
+  - `certificateType`
+  - `institution`
+- `ocrAnalysis`
+  - `confidence`
+  - `language`
+  - `rawText`
+  - `extractedFields`
+- `anomalyDetection`
+  - `overallScore`
+  - `findingSummary`
+  - `suspiciousRegions` (high-severity only)
+- `layoutAnalysis`
+  - `hasSignatureArea`
+  - `hasTableStructure`
+  - `hasHeaderArea`
+  - `hasFooterArea`
+  - `blockCount`
+- `reasoning`
+- `artifacts`
+  - `uploadUrl`
+  - `heatmapUrl`
+  - `reportUrl`
+  - `previewUrl`
 
 ### `GET /health`
 Simple readiness endpoint.
@@ -94,11 +117,13 @@ docker compose up --build
 - `S3_SECRET_ACCESS_KEY`
 - `S3_REGION_NAME`
 - `S3_PUBLIC_BASE_URL`
+- `S3_SIGNED_URLS_ENABLED` (default: `true`)
+- `S3_SIGNED_URL_EXPIRES_SECONDS` (default: `3600`)
 
 ## Development roadmap
 1. Add a small certificate dataset for tuning thresholds.
 2. Replace heuristic OCR parsing with better field extraction if needed.
-3. Tune the Supabase S3 bucket and public URL settings for production.
+3. Tune Supabase signed URL TTL and bucket policies for production.
 4. Add request auth and rate limiting when exposed publicly.
 5. Add regression tests for upload validation and scoring.
 

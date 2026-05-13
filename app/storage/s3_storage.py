@@ -21,6 +21,8 @@ class SupabaseS3Storage:
         self.bucket_name = settings.s3_bucket_name
         self.endpoint_url = settings.s3_endpoint_url.rstrip("/")
         self.public_base_url = settings.s3_public_base_url or self._derive_public_base_url(self.endpoint_url)
+        self.signed_urls_enabled = settings.s3_signed_urls_enabled
+        self.signed_url_expires_seconds = settings.s3_signed_url_expires_seconds
         self.client = boto3.client(
             "s3",
             endpoint_url=self.endpoint_url,
@@ -40,7 +42,21 @@ class SupabaseS3Storage:
         extra_args = {"ContentType": inferred_content_type}
         with source.open("rb") as buffer:
             self.client.upload_fileobj(buffer, self.bucket_name, key, ExtraArgs=extra_args)
+        return self.object_url(key)
+
+    def object_url(self, key: str) -> str:
+        if self.signed_urls_enabled:
+            return self.signed_url(key)
         return self.public_url(key)
+
+    def signed_url(self, key: str, expires_in: int | None = None) -> str:
+        normalized_key = key.lstrip("/")
+        ttl_seconds = expires_in if expires_in is not None else self.signed_url_expires_seconds
+        return self.client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self.bucket_name, "Key": normalized_key},
+            ExpiresIn=ttl_seconds,
+        )
 
     def public_url(self, key: str) -> str:
         normalized_key = key.lstrip("/")

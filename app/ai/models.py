@@ -26,6 +26,7 @@ class DocumentTypePrediction(BaseModel):
     label: str = "not_document"
     display_name: str = "Not a Document"
     confidence: float = 0.0
+    matched_keywords: List[str] = Field(default_factory=list)
     evidence: List[str] = Field(default_factory=list)
 
 

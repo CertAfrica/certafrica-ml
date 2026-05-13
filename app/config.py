@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     s3_secret_access_key: str = ""
     s3_region_name: str = "eu-central-1"
     s3_public_base_url: str = ""
+    s3_signed_urls_enabled: bool = True
+    s3_signed_url_expires_seconds: int = 3600
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -35,6 +37,8 @@ class Settings(BaseSettings):
             self.s3_secret_access_key = legacy_values.get("secret_access_key", self.s3_secret_access_key)
         if not self.s3_public_base_url and self.s3_endpoint_url:
             self.s3_public_base_url = self._derive_public_base_url(self.s3_endpoint_url)
+        if self.s3_signed_url_expires_seconds <= 0:
+            self.s3_signed_url_expires_seconds = 3600
 
     def _load_legacy_supabase_values(self, env_path: Path) -> Dict[str, str]:
         if not env_path.exists():
