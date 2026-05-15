@@ -106,6 +106,7 @@ class AnalysisResponse(BaseModel):
     layoutAnalysis: LayoutAnalysisPayload
     reasoning: List[str] = Field(default_factory=list)
     artifacts: ArtifactsPayload
+    aiOutput: Dict[str, Any] = Field(default_factory=dict)
 
 
 # Backward-compatible models still used across the codebase

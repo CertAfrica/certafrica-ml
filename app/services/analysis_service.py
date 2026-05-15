@@ -209,6 +209,7 @@ class AnalysisService:
                     reportUrl=report_url,
                     previewUrl=preview_url,
                 ),
+                aiOutput=ai_interpretation.model_dump(),
             )
 
     def _build_anomaly_payload(self, regions: List[Dict[str, Any]]) -> tuple[FindingSummary, List[SuspiciousRegionView]]:
