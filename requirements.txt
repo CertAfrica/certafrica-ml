@@ -6,12 +6,10 @@ numpy==1.24.4
 Pillow==9.5.0
 opencv-python-headless==4.10.0.84
 scikit-learn==1.3.2
-# pytesseract==0.3.13
 PyMuPDF==1.24.11
 reportlab==4.2.5
 easyocr==1.7.0
 rapidfuzz==3.9.7
-spacy==3.7.5
-pandas==2.0.3
 joblib==1.4.2
 boto3==1.34.162
+torchvision==0.17.2

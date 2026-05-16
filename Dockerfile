@@ -20,6 +20,10 @@ COPY requirements.txt ./
 RUN pip install --upgrade pip setuptools wheel \
     && pip install -r requirements.txt
 
+RUN python -c "from torchvision.models import mobilenet_v3_small, MobileNet_V3_Small_Weights; \
+    mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT)" \
+    && echo "MobileNetV3 weights cached"
+
 COPY app ./app
 COPY README.md ./README.md
 

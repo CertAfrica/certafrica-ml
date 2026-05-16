@@ -37,7 +37,7 @@ Thumbs.db
 .idea/
 
 # App runtime artifacts
-storage/
+
 artifacts/
 reports/
 *.pdf
