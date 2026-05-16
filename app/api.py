@@ -23,9 +23,8 @@ def health() -> dict:
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze(
     scan_id: str = Form(...),
-    certificate: UploadFile = File(...),
 ) -> AnalysisResponse:
-    return await analyzer.analyze(scan_id=scan_id, certificate=certificate)
+    return await analyzer.analyze(scan_id=scan_id)
 
 
 @router.post("/train/upload", response_model=TrainingUploadResponse)

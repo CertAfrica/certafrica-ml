@@ -23,6 +23,9 @@ from app.schemas import (
     VisualMatchView, VisualSimilarityView,
 )
 from app.storage.s3 import SupabaseS3Storage
+import logging
+
+logger = logging.getLogger(__name__)
 from app.utils.image import read_image, save_image
 from app.utils.validation import validate_upload
 
@@ -50,23 +53,23 @@ class AnalysisService:
         self.heatmap = HeatmapGenerator()
         self.report = ReportGenerator()
 
-    async def analyze(self, scan_id: str, certificate: UploadFile) -> AnalysisResponse:
+    async def analyze(self, scan_id: str) -> AnalysisResponse:
         start = perf_counter()
-        max_bytes = settings.max_upload_mb * 1024 * 1024
-        validate_upload(certificate, max_bytes)
 
         with tempfile.TemporaryDirectory(prefix=f"certafrica-{scan_id}-") as work_dir:
             work = Path(work_dir)
-            suffix = Path(certificate.filename or "input").suffix.lower() or ".bin"
-            upload_path = work / f"input{suffix}"
-
             try:
-                await self._save_upload(certificate, upload_path, max_bytes)
-            except ValueError as exc:
-                raise HTTPException(
-                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                    detail=str(exc),
-                ) from exc
+                certificate_key = self.storage.find_scan_certificate_key(scan_id)
+                if not certificate_key:
+                    logger.error({"scan_id": scan_id}, 'Certificate not found in storage for scan')
+                    raise FileNotFoundError(f"No certificate found for scan {scan_id}")
+
+                logger.info({"scan_id": scan_id, "cert_key": certificate_key}, 'Found certificate key; downloading')
+                upload_path = work / Path(certificate_key).name
+                self.storage.download_to_path(certificate_key, upload_path)
+                logger.info({"scan_id": scan_id, "local_path": str(upload_path)}, 'Downloaded certificate to local path')
+            except FileNotFoundError as exc:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
             image = read_image(upload_path)
             preprocessed = self.preprocessor.preprocess(image)
@@ -100,10 +103,7 @@ class AnalysisService:
             heatmap_path = work / "heatmap.png"
             preview_path = work / "preview.png"
             report_path = work / "report.pdf"
-            save_image(
-                self.heatmap.build_overlay(preprocessed["rgb"], suspicious_regions),
-                heatmap_path,
-            )
+            save_image(self.heatmap.build_overlay(preprocessed["rgb"], suspicious_regions), heatmap_path)
             save_image(preprocessed["rgb"], preview_path)
             self.report.generate(
                 output_path=report_path,
@@ -139,17 +139,22 @@ class AnalysisService:
                 },
             )
 
-            upload_url = self.storage.upload_file(
-                upload_path, self.storage.object_key(scan_id, upload_path.name))
-            heatmap_url = self.storage.upload_file(
-                heatmap_path, self.storage.object_key(scan_id, heatmap_path.name))
-            preview_url = self.storage.upload_file(
-                preview_path, self.storage.object_key(scan_id, preview_path.name))
-            report_url = self.storage.upload_file(
-                report_path,
-                self.storage.object_key(scan_id, report_path.name),
-                content_type="application/pdf",
-            )
+            # upload artifacts with logging
+            logger.info({"scan_id": scan_id, "upload_path": str(upload_path)}, 'Uploading certificate back to storage')
+            upload_url = self.storage.upload_file(upload_path, self.storage.object_key(scan_id, upload_path.name))
+            logger.info({"scan_id": scan_id, "upload_url": upload_url}, 'Uploaded certificate')
+
+            logger.info({"scan_id": scan_id, "heatmap_path": str(heatmap_path)}, 'Uploading heatmap')
+            heatmap_url = self.storage.upload_file(heatmap_path, self.storage.object_key(scan_id, heatmap_path.name))
+            logger.info({"scan_id": scan_id, "heatmap_url": heatmap_url}, 'Uploaded heatmap')
+
+            logger.info({"scan_id": scan_id, "preview_path": str(preview_path)}, 'Uploading preview')
+            preview_url = self.storage.upload_file(preview_path, self.storage.object_key(scan_id, preview_path.name))
+            logger.info({"scan_id": scan_id, "preview_url": preview_url}, 'Uploaded preview')
+
+            logger.info({"scan_id": scan_id, "report_path": str(report_path)}, 'Uploading report')
+            report_url = self.storage.upload_file(report_path, self.storage.object_key(scan_id, report_path.name), content_type="application/pdf")
+            logger.info({"scan_id": scan_id, "report_url": report_url}, 'Uploaded report')
 
             elapsed = perf_counter() - start
 

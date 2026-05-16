@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     ocr_lang: str = "eng"
     static_url_prefix: str = "/artifacts"
     s3_endpoint_url: str = "https://xshrsqhjbwlldvshtjcr.storage.supabase.co/storage/v1/s3"
-    s3_bucket_name: str = "certafrica"
+    s3_bucket_name: str = "certafrica-scans"
     s3_access_key_id: str = ""
     s3_secret_access_key: str = ""
     s3_region_name: str = "eu-central-1"

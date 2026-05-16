@@ -14,7 +14,6 @@ A lightweight FastAPI service for Nigerian certificate verification. It analyzes
 ### `POST /analyze`
 Form fields:
 - `scan_id`: string
-- `certificate`: file
 
 Response includes:
 - `scanId`
@@ -112,7 +111,7 @@ docker compose up --build
 - `OCR_LANG`
 - `STATIC_URL_PREFIX`
 - `S3_ENDPOINT_URL`
-- `S3_BUCKET_NAME`
+- `S3_BUCKET_NAME` (should match the backend bucket)
 - `S3_ACCESS_KEY_ID`
 - `S3_SECRET_ACCESS_KEY`
 - `S3_REGION_NAME`

@@ -33,7 +33,6 @@ dist/
 Thumbs.db
 
 # Editor files
-.vscode/
 .idea/
 
 # App runtime artifacts
@@ -45,3 +44,7 @@ reports/
 *.jpg
 *.jpeg
 *.webp
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
